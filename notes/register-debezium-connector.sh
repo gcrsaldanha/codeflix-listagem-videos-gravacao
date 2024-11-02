@@ -1,0 +1,15 @@
+curl -i -X POST -H "Accept: application/json" -H "Content-Type: application/json" localhost:8083/connectors/ -d '{
+  "name": "debezium",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "root",
+    "database.password": "root",
+    "topic.prefix": "catalog-db",
+    "database.server.id": "1",
+    "database.include.list": "codeflix",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:19092",
+    "schema.history.internal.kafka.topic": "schema-history.catalog-db"
+  }
+}'
