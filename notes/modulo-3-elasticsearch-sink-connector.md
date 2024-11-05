@@ -60,7 +60,7 @@ curl -X DELETE "localhost:9200/codeflix"
 Se você quiser se aprofundar mais nas configurações para o Elasticsearch com Docker, você pode acessar
 o [guia oficial da Elastic](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html).
 
-# Aula 3.2 - Configurando o Elasticsearch Sink Connector
+# Aula 3.2 - Configurando o Elasticsearch Sink Connector pt. 1
 
 Agora que temos o nosso Elasticsearch funcionando, vamos configurar o
 nosso [Elasticsearch Sink Connector](https://www.confluent.io/hub/confluentinc/kafka-connect-elasticsearch).
@@ -102,4 +102,104 @@ Agora podemos acessar o nosso Elasticsearch e verificar que o índice foi criado
 
 ```bash
 curl -X GET "localhost:9200/catalog-db.codeflix.categories/_search" | jq
+```
+
+Também é possível acessar pelo navegador.
+
+# Aula 3.3 - Configurando o Elasticserach Sink Connector pt. 2
+
+Se você visualizou os dados persistidos no Elasticsearch, vai percerber que eles foram salvos no mesmo formato que estavam no Kafka topic:
+
+```
+{
+  "before": null,
+  "after": {...},
+  "source": {...},
+  ...
+}
+```
+
+Nós não precisamos de todas essas informações no nosso banco de dados, gostaríamos apenas de manter os valores da entidade, como:
+
+```json
+{
+    "id": "afbf306c-994a-11ef-8f71-0242ac130002",
+    "name": "Filme",
+    "description": "Categoria para longa-metragem",
+    "is_active": 1,
+    "created_at": "2024-11-02T18:45:52Z",
+    "updated_at": "2024-11-02T18:45:52Z"
+}
+```
+
+Para isso, vamos precisar configurar o nosso Elasticsearch Sink Connector com mais algumas propriedades:
+
+```bash
+curl -i -X POST -H "Accept: application/json" -H "Content-Type: application/json" localhost:8083/connectors/ -d '{
+  "name": "elasticsearch",
+  "config": {
+    "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+    "tasks.max": "1",
+    "topics": "catalog-db.codeflix.categories,catalog-db.codeflix.genres,catalog-db.codeflix.genre_categories",
+    "connection.url": "http://elasticsearch:9200",
+    "behavior.on.null.values": "delete",
+    "key.ignore": "false",
+    "transforms": "unwrap,key,cast",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.drop.deletes": "false",
+    "transforms.key.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.key.field": "id",
+    "transforms.cast.type": "org.apache.kafka.connect.transforms.Cast$Value",
+    "transforms.cast.spec": "is_active:boolean",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name":"dlq_elastic_sink",
+    "errors.deadletterqueue.topic.replication.factor": 1,
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "errors.log.enable": "true"
+  }
+}'
+```
+
+- `transforms`: define os tipos de transformações que faremos nos dados:
+  - `unwrap`: extrair o "after" ao invés de toda mensagem
+  - `key`: utilizar o campo `id` da mensagem como `key` no Elasticsearch
+  - `cast`: converter o campo `is_active` (0, 1) para booleano
+
+Se quiser mais detalhes sobre todas configurações, pode buscar na documentação oficial do Elasticsearch Sink Connector ou do próprio Kafka Connect.
+
+Na verdade, antes de rodar o comando acima, é necessário deletar o conector anterior:
+
+```bash
+curl -X DELETE localhost:8083/connectors/elasticsearch
+```
+
+Agora sim podemos registrar nosso connector novamente e verificar como os dados estão sendo inseridos no Elasticsearch.
+
+```sql
+INSERT INTO categories (name) VALUES "teste";
+```
+
+Verificar novo documento no Elasticsearch:
+
+```bash
+curl -X GET "localhost:9200/catalog-db.codeflix.categories/_search" | jq
+```
+
+Resposta:
+
+```json
+{
+  "_index": "catalog-db.codeflix.categories",
+  "_id": "2db70700-9b0d-11ef-9c37-0242ac130002",
+  "_score": 1.0,
+  "_source": {
+    "id": "2db70700-9b0d-11ef-9c37-0242ac130002",
+    "name": "Teste",
+    "description": "",
+    "is_active": true,
+    "created_at": "2024-11-05T00:30:37Z",
+    "updated_at": "2024-11-05T00:30:37Z"
+  }
+}
 ```
