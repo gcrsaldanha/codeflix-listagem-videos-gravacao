@@ -4,7 +4,7 @@
 
 Criar o `docker-compose.yml`:
 
-```
+```yaml
 services:
   mysql:
     container_name: mysql
@@ -85,8 +85,7 @@ Docker.
 Para isso, vamos utilizar de exemplo a configuração de single-node providencidada pela própria
 Apache: [single-node](https://github.com/apache/kafka/blob/trunk/docker/examples/docker-compose-files/single-node/plaintext/docker-compose.yml)
 
-```dockerfile
-version: '2'
+```yaml
 services:
   broker:
     image: apache/kafka:3.7.0
@@ -163,7 +162,7 @@ O nosso objetivo é capturar as mudanças do MySQL e enviar para o Kafka. Para i
 Primeiro precisamos rodar um container com o Kafka Connect. Existem algumas imagens pré-configuradas, mas eu prefiro
 utilizar a [imagem oficial do Debezium](https://hub.docker.com/r/debezium/connect). Vamos utilizar a versão 2.5.
 
-```dockerfile
+```yaml
   connect:
     container_name: connect
     hostname: connect
@@ -247,7 +246,7 @@ a [configuração do Debezium MySQL Connector](https://docs.confluent.io/kafka-c
 
 Se tudo der certo, você vai ver uma resposta com status 201 e o nome do connector que você acabou de criar.
 
-```json
+```bash
 HTTP/1.1 201 Created
 Date: Sat, 02 Nov 2024 19: 59: 15 GMT
 Location: http: //localhost:8083/connectors/debezium
@@ -255,8 +254,7 @@ Content-Type: application/json
 Content-Length: 454
 Server: Jetty(9.4.52.v20230823)
 
-{... informações sobre o connector ...
-}
+{... informações sobre o connector ...}
 ```
 
 Para verificar se o connector foi criado, podemos listar os connectors registrados:
@@ -323,7 +321,7 @@ Pronto, agora conseguimos capturar as mudanças do MySQL e enviar para o Kafka.
 
 # Desafio: Atualizar a tabela e observar as mudanças
 
-- Script para registar o debezium connector: [register-debezium-connector.sh](register-debezium-connector.sh)
+- Script para registar o debezium connector: [register-debezium-connector.sh](../kafka-connect/register-debezium-connector.sh)
 - Docker compose atualizado: [docker-compose.yml](../docker-compose.yml)
 
 Mantenha uma janela do terminal consumindo eventos do tópico `catalog-db.codeflix.categories`.
