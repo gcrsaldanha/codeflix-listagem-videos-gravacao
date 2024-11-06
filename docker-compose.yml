@@ -77,6 +77,17 @@ services:
     volumes:
       - ./kafka-connect/connect-plugins:/kafka/extra-plugins
 
+  connect-setup:
+    container_name: connect-setup
+    image: curlimages/curl
+    volumes:
+      - ./kafka-connect/bin:/kafka-connect/bin
+    depends_on:
+      connect:
+        condition: service_healthy
+    command: [ "sh", "-c", "chmod +x /kafka-connect/bin/connect-setup.sh && /kafka-connect/bin/connect-setup.sh" ]
+    restart: "no"
+
   elasticsearch:
     container_name: elasticsearch
     hostname: elasticsearch

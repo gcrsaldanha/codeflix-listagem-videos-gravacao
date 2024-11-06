@@ -140,7 +140,7 @@ curl -i -X POST -H "Accept: application/json" -H "Content-Type: application/json
   "config": {
     "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
     "tasks.max": "1",
-    "topics": "catalog-db.codeflix.categories,catalog-db.codeflix.genres,catalog-db.codeflix.genre_categories",
+    "topics": "catalog-db.codeflix.categories",
     "connection.url": "http://elasticsearch:9200",
     "behavior.on.null.values": "delete",
     "key.ignore": "false",
@@ -166,7 +166,7 @@ curl -i -X POST -H "Accept: application/json" -H "Content-Type: application/json
   - `key`: utilizar o campo `id` da mensagem como `key` no Elasticsearch
   - `cast`: converter o campo `is_active` (0, 1) para booleano
 
-Se quiser mais detalhes sobre todas configurações, pode buscar na documentação oficial do Elasticsearch Sink Connector ou do próprio Kafka Connect.
+> Mais detalhes sobre configurações podem ser encontrados na documentação do [Elasticsearch Sink Connector](https://docs.confluent.io/kafka-connectors/elasticsearch/current/overview.html) ou do próprio [Apache Kafka Connect](https://kafka.apache.org/documentation/#connectconfigs).
 
 Na verdade, antes de rodar o comando acima, é necessário deletar o conector anterior:
 
@@ -174,13 +174,13 @@ Na verdade, antes de rodar o comando acima, é necessário deletar o conector an
 curl -X DELETE localhost:8083/connectors/elasticsearch
 ```
 
-Agora sim podemos registrar nosso connector novamente e verificar como os dados estão sendo inseridos no Elasticsearch.
+Agora podemos registrar o nosso connector novamente e verificar como os dados são inseridos no Elasticsearch.
 
 ```sql
 INSERT INTO categories (name) VALUES "teste";
 ```
 
-Verificar novo documento no Elasticsearch:
+Verificar o novo documento no Elasticsearch:
 
 ```bash
 curl -X GET "localhost:9200/catalog-db.codeflix.categories/_search" | jq
@@ -203,3 +203,32 @@ Resposta:
   }
 }
 ```
+
+> Verificar que alterações no banco de dados MySQL (CRUD) são refletidas no Elasticsearch!
+
+
+# Aula 3.4 - Inicialização Kafka Connect
+
+Para facilitar o nosso desenvolvimento e não ter que ficar manualmente rodando o connector toda vez que reiniciarmos o nosso Kafka Broker, vamos criar um serviço no nosso docker-compose.yml para inicializar o Kafka Connect e registrar os connectors.
+
+```yaml
+connect-setup:
+  container_name: connect-setup
+  image: curlimages/curl
+  volumes:
+    - ./kafka-connect/bin:/kafka-connect/bin
+  depends_on:
+    connect:
+      condition: service_healthy
+  command: [ "sh", "-c", "chmod +x /kafka-connect/bin/connect-setup.sh && /kafka-connect/bin/connect-setup.sh" ]
+  restart: "no"
+```
+
+E vamos precisar criar o arquivo `connect-setup.sh` na pasta host: kafka-connect/bin:
+
+- [connect-setup.sh](../kafka-connect/bin/connect-setup.sh)
+
+Precisamos criar os arquivos `debezium-source.json` e `elasticsearch-sink.json` na pasta host: kafka-connect/bin:
+
+- [debezium-source.json](../kafka-connect/bin/debezium-source.json)
+- [elasticsearch-sink.json](../kafka-connect/bin/elasticsearch-sink.json)
