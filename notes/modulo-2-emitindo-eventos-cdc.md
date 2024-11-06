@@ -321,7 +321,7 @@ Pronto, agora conseguimos capturar as mudanças do MySQL e enviar para o Kafka.
 
 # Desafio: Atualizar a tabela e observar as mudanças
 
-- Script para registar o debezium connector: [register-debezium-connector.sh](../kafka-connect/register-debezium-connector.sh)
+- Script para registar o debezium connector: [register-debezium-connector.sh](../kafka-connect/bin/register-debezium-connector.sh)
 - Docker compose atualizado: [docker-compose.yml](../docker-compose.yml)
 
 Mantenha uma janela do terminal consumindo eventos do tópico `catalog-db.codeflix.categories`.
