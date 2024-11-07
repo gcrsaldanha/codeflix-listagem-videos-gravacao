@@ -1,0 +1,24 @@
+{
+  "name": "elasticsearch",
+  "config": {
+    "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+    "tasks.max": "1",
+    "topics": "catalog-db.codeflix.categories",
+    "connection.url": "http://elasticsearch:9200",
+    "behavior.on.null.values": "delete",
+    "key.ignore": "false",
+    "transforms": "unwrap,key,cast",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.drop.deletes": "false",
+    "transforms.key.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.key.field": "id",
+    "transforms.cast.type": "org.apache.kafka.connect.transforms.Cast$Value",
+    "transforms.cast.spec": "is_active:boolean",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name":"dlq_elastic_sink",
+    "errors.deadletterqueue.topic.replication.factor": 1,
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "errors.log.enable": "true"
+  }
+}
