@@ -21,5 +21,5 @@ class CategoryRepository(ABC):
         search: str | None = None,
         sort: str | None = None,
         direction: SortDirection = SortDirection.ASC,
-    ) -> tuple[Category]:
+    ) -> list[Category]:
         raise NotImplementedError
