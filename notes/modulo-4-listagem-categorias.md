@@ -123,3 +123,28 @@ definimos essa interface.
 
 Essa implementação vai ficar mais para frente, quando implementarmos a integração com o Elasticsearch através de uma
 classe que extenda `CategoryRepository`, por exemplo, `ElasticsearchCategoryRepository`.
+
+# Aula 4.4 - List Category Use Case
+
+Por enquanto teremos apenas 1 caso de uso para cada entidade, o de listagem. Vamos precisar definir alguns objetos:
+
+- Input
+- Output
+    - Data
+    - Metadata
+      - Page
+      - Per Page
+      - Sort
+      - Direction
+
+E para ter uma melhor performance, vamos delegar toda a parte de paginação, busca e ordenação para o banco de dados. Especialmente por estarmos utilizando o Elasticsearch que é muito eficiente nesse tipo de operação.
+
+Isso faz com que a lógica da nossa camada de aplicação se mantenha bem simples, praticamente passando os valores do input do usecase para o repository, e garantindo que o `input` seja válido (e.g.: SortableFields).
+
+* Fazer TDD com o test em [test_list_category.py](../src/test_list_category.py)
+* Implementação: [list_category.py](../src/list_category.py)
+
+**Exercício**
+
+1. Escrever um teste para a listagem com o `Input` contendo valores definidos para `page`, `per_page`, `sort` e `direction`.
+2. Escrever um teste para garantir que caso o usuário passe um valor inválido para `sort`, o sistema retorne um erro.
