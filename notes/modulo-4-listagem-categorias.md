@@ -34,3 +34,66 @@ Response
   }
 }
 ```
+
+# Aula 4.2 - Criando Category Domain
+
+Ao contrário da parte 1 desse projeto (Administração de Catálogo), aqui as alterações em nossas entidades ocorrerão apenas por meio do Debezium. Portanto, não precisamos nos preocupar com muitas regras de negócio além de validações básicas.
+
+Para facilitar essa parte de validações e diminuir a quantidade de código que precisamos escrever, vamos utilizar a biblioteca `pydantic`.
+
+Primeiro, vamos criar um ambiente virtual (mais para a frente vamos dockerizar nossa aplicação), recomendo utilizar o Python 3.12 (é o que utilizarei ao longo do curso).
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Agora, instale a biblioteca `pydantic`:
+
+```bash
+pip install pydantic
+```
+
+Por fim, vamos criar uma pasta `src` e o arquivo [`category.py`](../src/category.py).
+
+> Não vamos entrar em muitos detalhes sobre o `pydantic`, mas recomendo muito a leitura da [documentação oficial](https://docs.pydantic.dev/latest/). Pense nele como um `dataclass` mais elaborado.
+
+O legal do pydantic é que ele utiliza a sintaxe de type hints do Python para inferir o tipo dos campos, e com isso, ele consegue fazer validações de tipos e valores automaticamente.
+
+Por exemplo:
+
+```python
+from src.category import Category
+
+category = Category(
+    id='123e4567-e89b-12d3-a456-426614174000',
+    name='Category Name',
+    description='Category Description',
+    is_active=True,
+    created_at='2023-01-01T00:00:00',
+    updated_at='2023-01-01T00:00:00'
+)
+
+print(category)
+
+invalid_category = Category(id=1, name=120)
+
+"""
+ValidationError: 5 validation errors for Category
+id
+  UUID input should be a string, bytes or UUID object [type=uuid_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.9/v/uuid_type
+name
+  Input should be a valid string [type=string_type, input_value=120, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.9/v/string_type
+created_at
+  Field required [type=missing, input_value={'id': 1, 'name': 120}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+updated_at
+  Field required [type=missing, input_value={'id': 1, 'name': 120}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'name': 120}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+"""
+```
