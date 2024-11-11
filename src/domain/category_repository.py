@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import StrEnum
 
-from src.category import Category
+from src.domain.category import Category
 
 
 DEFAULT_PAGINATION_SIZE = 5

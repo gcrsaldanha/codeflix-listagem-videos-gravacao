@@ -58,3 +58,26 @@ docker compose run --rm tests
 ```
 
 > Testar parar o container elasticsearch-test e rodar os testes com o comando `docker compose run --rm tests`.
+
+
+# Aula 6.2 - Reorganizando pastas
+
+Tem muitas maneiras de organizar as nossas pastas. Como nossa aplicação praticamente não tem regra de negócio, a gente vai separar por **camadas** e não por **domínio**.
+
+```
+src
+├── application
+│   └── list_category.py
+├── domain
+│   ├── category.py
+│   └── category_repository.py
+├── infra
+│   └── elasticsearch
+│       └── elasticsearch_category_repository.py
+└── tests
+    ├── integration_tests
+    │   ├── test_elasticsearch_category_repository.py
+    │   └── test_list_category.py
+    └── unit_tests
+        └── test_list_category.py
+```

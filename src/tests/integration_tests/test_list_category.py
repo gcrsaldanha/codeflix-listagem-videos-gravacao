@@ -4,12 +4,12 @@ from uuid import uuid4
 import pytest
 from elasticsearch import Elasticsearch
 
-from src.category import Category
-from src.elasticsearch_category_repository import (
+from src.domain.category import Category
+from src.infra.elasticsearch.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
     ELASTICSEARCH_HOST_TEST,
 )
-from src.list_category import (
+from src.application.list_category import (
     ListCategory,
     ListCategoryInput,
     ListCategoryOutputMeta,

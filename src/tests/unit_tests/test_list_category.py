@@ -4,9 +4,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.category import Category
-from src.category_repository import CategoryRepository
-from src.list_category import ListCategory, ListCategoryInput, ListCategoryOutputMeta
+from src.domain.category import Category
+from src.domain.category_repository import CategoryRepository
+from src.application.list_category import ListCategory, ListCategoryInput, ListCategoryOutputMeta
 
 
 class TestListCategory:
