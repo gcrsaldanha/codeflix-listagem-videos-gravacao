@@ -1,13 +1,6 @@
-from datetime import datetime
-from uuid import UUID
-
-from pydantic import BaseModel
+from src.domain.entity import Entity
 
 
-class Category(BaseModel):
-    id: UUID
+class Category(Entity):
     name: str
     description: str = ""
-    created_at: datetime
-    updated_at: datetime
-    is_active: bool

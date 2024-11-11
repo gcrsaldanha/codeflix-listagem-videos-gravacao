@@ -81,3 +81,7 @@ src
     └── unit_tests
         └── test_list_category.py
 ```
+
+# Aula 6.3 - Abstraindo Category: Domain
+
+- Criar [`Entity`](../src/domain/entity.py) e fazer Category herdar dela.
