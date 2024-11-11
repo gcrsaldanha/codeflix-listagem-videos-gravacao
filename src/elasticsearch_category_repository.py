@@ -38,9 +38,18 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         # total_count = response["hits"]["total"]["value"]
         # pode ser utilizado pra calcular a "next_page" por exemplo.
         query = {
-            "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
             "from": (page - 1) * per_page,
             "size": per_page,
+            "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],
+            "query": {
+                "bool": {
+                    "must": (
+                        [{"multi_match": {"query": search, "fields": ["name", "description"]}}]
+                        if search
+                        else [{"match_all": {}}]
+                    )
+                }
+            },
         }
 
         response = self._client.search(

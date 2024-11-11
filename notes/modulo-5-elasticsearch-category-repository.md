@@ -190,3 +190,35 @@ query = {
     "size": per_page,
 }
 ```
+
+
+# Aula 5.5 - Busca (search)
+
+Agora vamos implementar a busca, que é a principal capacidade do Elasticsearch. Nós podemos especificar quais são os campos que queremos que sejam analisados para a busac. No nosso caso, utilizaremos `name` e `description`.
+
+A sintaxe é um pouquinho mais complexa:
+```python
+        query = {
+            "from": (page - 1) * per_page,
+            "size": per_page,
+            "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],
+            "query": {
+                "bool": {
+                    "must": (
+                        [{"multi_match": {"query": search, "fields": ["name", "description"]}}]
+                        if search
+                        else [{"match_all": {}}]
+                    )
+                }
+            },
+        }
+```
+
+E vamos adicionar alguns testes ao `TestSearch`:
+
+* test_when_search_term_matches_category_name_then_return_matching_entities
+* test_search_term_matches_both_name_and_description 
+* test_search_is_case_insensitive
+* test_search_by_non_existent_term_then_return_empty_list
+
+> Refatorar TestSearch para utilizar `populated_es` onde fizer sentido

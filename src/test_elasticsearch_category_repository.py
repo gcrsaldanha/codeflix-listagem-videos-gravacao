@@ -60,6 +60,35 @@ def es() -> Elasticsearch:
     client.indices.delete(index=ElasticsearchCategoryRepository.INDEX)
 
 
+@pytest.fixture
+def populated_es(
+    es: Elasticsearch,
+    movie_category: Category,
+    series_category: Category,
+    documentary_category: Category,
+) -> Elasticsearch:
+    es.index(
+        index=ElasticsearchCategoryRepository.INDEX,
+        id=str(movie_category.id),
+        body=movie_category.model_dump(mode="json"),
+        refresh=True,
+    )
+    es.index(
+        index=ElasticsearchCategoryRepository.INDEX,
+        id=str(series_category.id),
+        body=series_category.model_dump(mode="json"),
+        refresh=True,
+    )
+    es.index(
+        index=ElasticsearchCategoryRepository.INDEX,
+        id=str(documentary_category.id),
+        body=documentary_category.model_dump(mode="json"),
+        refresh=True,
+    )
+
+    return es
+
+
 class TestSearch:
     def test_can_reach_elasticsearch_test_database(self, es: Elasticsearch) -> None:
         assert es.ping()
@@ -67,8 +96,6 @@ class TestSearch:
     def test_when_index_is_empty_then_return_empty_list(
         self,
         es: Elasticsearch,
-        movie_category: Category,
-        series_category: Category,
     ) -> None:
         repository = ElasticsearchCategoryRepository(client=es)
 
@@ -76,27 +103,16 @@ class TestSearch:
 
     def test_when_index_has_categories_then_return_mapped_categories_with_default_search(
         self,
-        es: Elasticsearch,
+        populated_es: Elasticsearch,
         movie_category: Category,
         series_category: Category,
+        documentary_category: Category,
     ) -> None:
-        es.index(
-            index=ElasticsearchCategoryRepository.INDEX,
-            id=str(movie_category.id),
-            body=movie_category.model_dump(mode="json"),
-            refresh=True,
-        )
-        es.index(
-            index=ElasticsearchCategoryRepository.INDEX,
-            id=str(series_category.id),
-            body=series_category.model_dump(mode="json"),
-            refresh=True,
-        )
-        repository = ElasticsearchCategoryRepository(client=es)
+        repository = ElasticsearchCategoryRepository(client=populated_es)
 
         categories = repository.search()
 
-        assert categories == [movie_category, series_category]
+        assert categories == [movie_category, series_category, documentary_category]
 
     def test_when_index_has_malformed_categories_then_return_valid_categories_and_log_error(
         self,
@@ -122,6 +138,52 @@ class TestSearch:
 
         assert categories == [movie_category]
         mock_logger.error.assert_called_once()
+
+    def test_when_search_term_matches_category_name_then_return_matching_entities(
+        self,
+        populated_es: Elasticsearch,
+        movie_category: Category,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(search="Filme")
+
+        assert categories == [movie_category]
+
+    def test_search_term_matches_both_name_and_description(
+        self,
+        populated_es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(search="Categoria")
+
+        # Todos contêm a palavra "Categoria" no nome ou descrição
+        assert categories == [movie_category, series_category, documentary_category]
+
+    def test_search_is_case_insensitive(
+        self,
+        populated_es: Elasticsearch,
+        movie_category: Category,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(search="filme")
+
+        assert categories == [movie_category]
+
+    def test_search_by_non_existent_term_then_return_empty_list(
+        self,
+        populated_es: Elasticsearch,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(search="Non-existent")
+
+        assert categories == []
 
 
 class TestOrdering:
@@ -219,35 +281,6 @@ class TestOrdering:
 
 
 class TestPagination:
-    @pytest.fixture
-    def populated_es(
-        self,
-        es: Elasticsearch,
-        movie_category: Category,
-        series_category: Category,
-        documentary_category: Category,
-    ) -> Elasticsearch:
-        es.index(
-            index=ElasticsearchCategoryRepository.INDEX,
-            id=str(movie_category.id),
-            body=movie_category.model_dump(mode="json"),
-            refresh=True,
-        )
-        es.index(
-            index=ElasticsearchCategoryRepository.INDEX,
-            id=str(series_category.id),
-            body=series_category.model_dump(mode="json"),
-            refresh=True,
-        )
-        es.index(
-            index=ElasticsearchCategoryRepository.INDEX,
-            id=str(documentary_category.id),
-            body=documentary_category.model_dump(mode="json"),
-            refresh=True,
-        )
-
-        return es
-
     def test_when_no_page_is_requested_then_return_default_paginated_response(
         self,
         populated_es: Elasticsearch,
