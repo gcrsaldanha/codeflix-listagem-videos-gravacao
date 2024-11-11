@@ -127,6 +127,23 @@ services:
     profiles:
       - test
 
+  tests:
+    build: .
+    environment:
+      PYTHONPATH: "/app"
+      ELASTICSEARCH_TEST_HOST: "http://elasticsearch-test:9200"
+    container_name: tests
+    command: [ "pytest", "-vv", "-s"]
+    depends_on:
+      elasticsearch-test:
+        condition: service_healthy
+    profiles:
+      - test
+    ports:
+      - "5678:5678"  # Debug port
+    volumes:
+      - .:/app
+
 
 volumes:
   mysql-data:
