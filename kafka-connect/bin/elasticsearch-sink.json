@@ -19,6 +19,7 @@
     "errors.deadletterqueue.topic.name":"dlq_elastic_sink",
     "errors.deadletterqueue.topic.replication.factor": 1,
     "errors.deadletterqueue.context.headers.enable": "true",
-    "errors.log.enable": "true"
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true"
   }
 }

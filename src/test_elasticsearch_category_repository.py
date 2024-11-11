@@ -7,45 +7,60 @@ import pytest
 from elasticsearch import Elasticsearch
 
 from src.category import Category
+from src.category_repository import SortDirection
 from src.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
-    CATEGORY_INDEX,
     ELASTICSEARCH_HOST_TEST,
 )
 
 
+@pytest.fixture
+def movie_category() -> Category:
+    return Category(
+        id=uuid4(),
+        name="Filme",
+        description="Categoria de filmes",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def series_category() -> Category:
+    return Category(
+        id=uuid4(),
+        name="Séries",
+        description="Categoria de séries",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def documentary_category() -> Category:
+    return Category(
+        id=uuid4(),
+        name="Documentários",
+        description="Categoria de documentários",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def es() -> Elasticsearch:
+    client = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
+    if not client.indices.exists(index=ElasticsearchCategoryRepository.INDEX):
+        client.indices.create(index=ElasticsearchCategoryRepository.INDEX)
+
+    yield client
+    client.indices.delete(index=ElasticsearchCategoryRepository.INDEX)
+
+
 class TestSearch:
-    @pytest.fixture
-    def movie_category(self) -> Category:
-        return Category(
-            id=uuid4(),
-            name="Filme",
-            description="Categoria de filmes",
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-            is_active=True,
-        )
-
-    @pytest.fixture
-    def series_category(self) -> Category:
-        return Category(
-            id=uuid4(),
-            name="Séries",
-            description="Categoria de séries",
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-            is_active=True,
-        )
-
-    @pytest.fixture
-    def es(self) -> Elasticsearch:
-        client = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
-        if not client.indices.exists(index=CATEGORY_INDEX):
-            client.indices.create(index=CATEGORY_INDEX)
-
-        yield client
-        client.indices.delete(index=CATEGORY_INDEX)
-
     def test_can_reach_elasticsearch_test_database(self, es: Elasticsearch) -> None:
         assert es.ping()
 
@@ -66,15 +81,15 @@ class TestSearch:
         series_category: Category,
     ) -> None:
         es.index(
-            index=CATEGORY_INDEX,
+            index=ElasticsearchCategoryRepository.INDEX,
             id=str(movie_category.id),
-            body=movie_category.model_dump(mode='json'),
+            body=movie_category.model_dump(mode="json"),
             refresh=True,
         )
         es.index(
-            index=CATEGORY_INDEX,
+            index=ElasticsearchCategoryRepository.INDEX,
             id=str(series_category.id),
-            body=series_category.model_dump(mode='json'),
+            body=series_category.model_dump(mode="json"),
             refresh=True,
         )
         repository = ElasticsearchCategoryRepository(client=es)
@@ -89,13 +104,13 @@ class TestSearch:
         movie_category: Category,
     ) -> None:
         es.index(
-            index=CATEGORY_INDEX,
+            index=ElasticsearchCategoryRepository.INDEX,
             id=str(movie_category.id),
-            body=movie_category.model_dump(mode='json'),
+            body=movie_category.model_dump(mode="json"),
             refresh=True,
         )
         es.index(
-            index=CATEGORY_INDEX,
+            index=ElasticsearchCategoryRepository.INDEX,
             id=str(uuid4()),
             body={"name": "Malformed"},
             refresh=True,
@@ -107,3 +122,97 @@ class TestSearch:
 
         assert categories == [movie_category]
         mock_logger.error.assert_called_once()
+
+
+class TestOrdering:
+    def test_when_no_sorting_is_specified_then_return_categories_ordered_by_insertion_order(
+        self,
+        es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            body=series_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(movie_category.id),
+            body=movie_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(documentary_category.id),
+            body=documentary_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        repository = ElasticsearchCategoryRepository(client=es)
+
+        categories = repository.search()
+
+        assert categories == [series_category, movie_category, documentary_category]
+
+    def test_return_categories_ordered_by_name_asc(
+        self,
+        es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(movie_category.id),
+            body=movie_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(series_category.id),
+            body=series_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(documentary_category.id),
+            body=documentary_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        repository = ElasticsearchCategoryRepository(client=es)
+
+        categories = repository.search(sort="name", direction=SortDirection.ASC)
+
+        assert categories == [documentary_category, movie_category, series_category]
+
+    def test_return_categories_ordered_by_name_desc(
+        self,
+        es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(movie_category.id),
+            body=movie_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(series_category.id),
+            body=series_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(documentary_category.id),
+            body=documentary_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        repository = ElasticsearchCategoryRepository(client=es)
+
+        categories = repository.search(sort="name", direction=SortDirection.DESC)
+
+        assert categories == [series_category, movie_category, documentary_category]

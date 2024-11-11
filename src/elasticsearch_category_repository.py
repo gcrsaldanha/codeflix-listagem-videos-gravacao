@@ -11,12 +11,13 @@ from src.category_repository import (
     SortDirection,
 )
 
-CATEGORY_INDEX = "catalog-db.codeflix.categories"
 ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")
 ELASTICSEARCH_HOST_TEST = os.getenv("ELASTICSEARCH_TEST_HOST", "http://localhost:9201")
 
 
 class ElasticsearchCategoryRepository(CategoryRepository):
+    INDEX = "catalog-db.codeflix.categories"
+
     def __init__(
         self,
         client: Elasticsearch | None = None,
@@ -36,9 +37,13 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         # Se quiséssemos o total de resultados, poderíamos usar o campo "total" do response
         # total_count = response["hits"]["total"]["value"]
         # pode ser utilizado pra calcular a "next_page" por exemplo.
+        query = {
+            "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
+        }
+
         response = self._client.search(
-            index=CATEGORY_INDEX,
-            body=None,  # TODO: adicionar query para busca/ordenação/paginação
+            index=self.INDEX,
+            body=query,
         )
         category_hits = response["hits"]["hits"]
 

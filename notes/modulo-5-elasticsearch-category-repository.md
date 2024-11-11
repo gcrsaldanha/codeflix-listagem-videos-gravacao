@@ -2,9 +2,11 @@
 
 # Aula 5.1 - Integrando nossa aplicação com Elasticsearch
 
-Já temos o `CategoryRepository` e agora precisamos da nossa implementação desse repositório integrada com o Elasticsearch.
+Já temos o `CategoryRepository` e agora precisamos da nossa implementação desse repositório integrada com o
+Elasticsearch.
 
-Lembrando que esse **não é um curso** de Elasticsearch. Já temos cursos com esse foco aqui na plataforma. Então não vou ficar passando em detalhes as configurações e se você quiser se aprofundar, recomendo ler a documentação oficial.
+Lembrando que esse **não é um curso** de Elasticsearch. Já temos cursos com esse foco aqui na plataforma. Então não vou
+ficar passando em detalhes as configurações e se você quiser se aprofundar, recomendo ler a documentação oficial.
 
 * Instalar `elasticsearch==8.13.2`
 * Criar `ElasticsearchCategoryRepository` implementando `CategoryRepository`
@@ -17,6 +19,7 @@ Lembrando que esse **não é um curso** de Elasticsearch. Já temos cursos com e
 
 ```python
 from src.elasticsearch_category_repository import ElasticsearchCategoryRepository
+
 repo = ElasticsearchCategoryRepository()
 print(repo.search())
 ```
@@ -49,9 +52,9 @@ Vamos criar um teste para garantir que o repositório consegue se comunicar com 
 
 ```python
   def test_can_reach_elasticsearch_test_database() -> None:
-      es = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
+    es = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
 
-      assert es.ping()
+    assert es.ping()
 ```
 
 Vai falhar, pois precisamos garantir que o Elasticsearch esteja rodando antes de rodar os testes.
@@ -61,12 +64,14 @@ docker compose up -d elasticsearch-test
 ```
 
 Queremos escrever alguns casos de teste:
+
 * test_can_reach_elasticsearch_test_database
 * test_when_index_is_empty_then_return_empty_list
 * test_when_index_has_categories_then_return_mapped_categories_with_default_search
 * test_when_index_has_malformed_categories_then_return_valid_categories_and_log_error
 
 Vamos precisar de uma fixture para criar o índice no Elasticsearch antes de rodar os testes e deletar o índice depois.
+
 ```python
 class TestSearch:
     @pytest.fixture
@@ -80,9 +85,11 @@ class TestSearch:
 
 ```
 
-E também vamos precisar de fixtures para categorias, podemos copiar as que utilizamos anteriormente: `movie_category` e `series_category`.
+E também vamos precisar de fixtures para categorias, podemos copiar as que utilizamos anteriormente: `movie_category`
+e `series_category`.
 
 Como indexar um documento:
+
 ```python
 es.index(
     index=CATEGORY_INDEX,
@@ -93,6 +100,51 @@ es.index(
 
 ```
 
-> Ao indexar um documento, passamos `refresh=True` para garantir que o documento vai estar disponível para busca imediatamente.
+> Ao indexar um documento, passamos `refresh=True` para garantir que o documento vai estar disponível para busca
+> imediatamente.
 
 Terminar de escrever os testes e passar o `client` e `logger` como dependência para o `ElasticsearchCategoryRepository`.
+
+# Aula 5.3 - Ordenação (sorting)
+
+Para evitar inconsistências, vamos fazer um cleanup do nosso MySQL e do Elasticsearch.
+
+```bash
+curl -X DELETE "http://localhost:9200/catalog-db.codeflix.categories"
+```
+
+```mysql
+DELETE
+FROM category
+where true;
+```
+
+Agora vamos escrever os nossos testes:
+
+* test_when_no_sorting_is_specified_then_return_categories_ordered_by_insertion_order
+* test_return_categories_ordered_by_name_asc
+* test_return_categories_ordered_by_name_desc
+
+Para deixar mais explícito o comportamento, vamos criar uma nova fixture para `documentary_category`.
+
+Small refactor: ao invés de `CATEGORY_INDEX`, mover para uma constante `INDEX`.
+
+```python
+class ElasticsearchCategoryRepository:
+    INDEX = "catalog-db.codeflix.categories"
+    ...
+```
+
+Implementação do repositório:
+```python
+query = {
+    "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
+}
+
+response = self._client.search(
+    index=self.INDEX,
+    body=query,
+)
+```
+
+> .keyword garante que vamos ordenar exatamente pelo valor completo do campo (exact match), sem aplicar nenhum tipo de análise. Caso contrário, poderíamos ter resultados inesperados com campos com mais de 1 palavra.

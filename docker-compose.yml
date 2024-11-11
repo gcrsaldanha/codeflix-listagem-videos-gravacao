@@ -120,7 +120,7 @@ services:
       - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
       - "indices.fielddata.cache.size=5%"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9201" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
       interval: 30s
       timeout: 10s
       retries: 5
