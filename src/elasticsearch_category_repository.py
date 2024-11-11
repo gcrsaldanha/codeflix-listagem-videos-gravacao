@@ -1,7 +1,8 @@
 import logging
+import os
 
 from elasticsearch import Elasticsearch
-from pydantic_core._pydantic_core import ValidationError
+from pydantic import ValidationError
 
 from src.category import Category
 from src.category_repository import (
@@ -11,12 +12,18 @@ from src.category_repository import (
 )
 
 CATEGORY_INDEX = "catalog-db.codeflix.categories"
+ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")
+ELASTICSEARCH_HOST_TEST = os.getenv("ELASTICSEARCH_TEST_HOST", "http://localhost:9201")
 
 
 class ElasticsearchCategoryRepository(CategoryRepository):
-
-    def __init__(self, client: Elasticsearch | None = None) -> None:
-        self.client = client or Elasticsearch(hosts=["http://localhost:9200"])
+    def __init__(
+        self,
+        client: Elasticsearch | None = None,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        self._client = client or Elasticsearch(hosts=[ELASTICSEARCH_HOST])
+        self._logger = logger or logging.getLogger(__name__)
 
     def search(
         self,
@@ -29,7 +36,7 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         # Se quiséssemos o total de resultados, poderíamos usar o campo "total" do response
         # total_count = response["hits"]["total"]["value"]
         # pode ser utilizado pra calcular a "next_page" por exemplo.
-        response = self.client.search(
+        response = self._client.search(
             index=CATEGORY_INDEX,
             body=None,  # TODO: adicionar query para busca/ordenação/paginação
         )
@@ -39,8 +46,8 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         for category in category_hits:
             try:
                 parsed_category = Category(**category["_source"])
-            except ValidationError as e:
-                logging.error(f"Malformed category: {category["_source"]}")
+            except ValidationError:
+                self._logger.error(f"Malformed category: {category}")
             else:
                 parsed_categories.append(parsed_category)
 
