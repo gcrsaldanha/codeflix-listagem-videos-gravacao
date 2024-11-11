@@ -222,3 +222,18 @@ E vamos adicionar alguns testes ao `TestSearch`:
 * test_search_by_non_existent_term_then_return_empty_list
 
 > Refatorar TestSearch para utilizar `populated_es` onde fizer sentido
+
+
+# Aula 5.6 - Teste de integração UseCase - Repository
+
+Vamos criar um teste de integração para garantir que o `ListCategory` consegue utilizar o `ElasticsearchCategoryRepository` corretamente.
+
+- [test_list_category.py](../src/integration_tests/test_list_category.py)
+
+Test cases:
+- `test_list_categories_with_default_values`
+- `test_list_categories_with_pagination_sorting_and_search`
+
+Criamos uma pasta `unit_tests` e uma `integration_tests` para diferenciar testes que precisam de infraestrutura rodando (e.g.: Elasticsearch).
+
+É perceptível que devido à baixa complexidade de regras de negócio da nossa aplicação, os testes de integração são os que fornecem o maior retorno para a gente.
