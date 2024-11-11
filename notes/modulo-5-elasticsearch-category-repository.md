@@ -136,6 +136,7 @@ class ElasticsearchCategoryRepository:
 ```
 
 Implementação do repositório:
+
 ```python
 query = {
     "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
@@ -147,4 +148,45 @@ response = self._client.search(
 )
 ```
 
-> .keyword garante que vamos ordenar exatamente pelo valor completo do campo (exact match), sem aplicar nenhum tipo de análise. Caso contrário, poderíamos ter resultados inesperados com campos com mais de 1 palavra.
+> .keyword garante que vamos ordenar exatamente pelo valor completo do campo (exact match), sem aplicar nenhum tipo de
+> análise. Caso contrário, poderíamos ter resultados inesperados com campos com mais de 1 palavra.
+
+# Aula 5.4 - Paginação (pagination)
+
+Vamos escrever os seguintes testes:
+
+* test_when_no_page_is_requested_then_return_default_paginated_response
+* test_when_page_is_requested_then_return_expected_paginated_response
+* test_when_requested_page_is_out_of_bounds_then_return_empty_list
+
+Para facilitar, vamos criar uma fixture já populando o Elasticsearch com categorias:
+
+```python
+    @pytest.fixture
+def populated_es(
+        self,
+        es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+) -> Elasticsearch:
+    es.index(
+        index=ElasticsearchCategoryRepository.INDEX,
+        id=str(movie_category.id),
+        body=movie_category.model_dump(mode="json"),
+        refresh=True,
+    )
+    ...  # Indexar as outras categorias
+
+    return es
+```
+
+E a implementação é bem simples:
+
+```python
+query = {
+    "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
+    "from": (page - 1) * per_page,
+    "size": per_page,
+}
+```

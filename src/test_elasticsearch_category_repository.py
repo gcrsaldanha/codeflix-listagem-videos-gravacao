@@ -216,3 +216,74 @@ class TestOrdering:
         categories = repository.search(sort="name", direction=SortDirection.DESC)
 
         assert categories == [series_category, movie_category, documentary_category]
+
+
+class TestPagination:
+    @pytest.fixture
+    def populated_es(
+        self,
+        es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> Elasticsearch:
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(movie_category.id),
+            body=movie_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(series_category.id),
+            body=series_category.model_dump(mode="json"),
+            refresh=True,
+        )
+        es.index(
+            index=ElasticsearchCategoryRepository.INDEX,
+            id=str(documentary_category.id),
+            body=documentary_category.model_dump(mode="json"),
+            refresh=True,
+        )
+
+        return es
+
+    def test_when_no_page_is_requested_then_return_default_paginated_response(
+        self,
+        populated_es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(sort="name")
+
+        assert categories == [documentary_category, movie_category, series_category]
+
+    def test_when_page_is_requested_then_return_expected_paginated_response(
+        self,
+        populated_es: Elasticsearch,
+        movie_category: Category,
+        series_category: Category,
+        documentary_category: Category,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        # Page 1
+        categories = repository.search(sort="name", page=1, per_page=2)
+        assert categories == [documentary_category, movie_category]
+
+        # Page 2
+        categories = repository.search(sort="name", page=2, per_page=2)
+        assert categories == [series_category]
+
+    def test_when_requested_page_is_out_of_bounds_then_return_empty_list(
+        self,
+        populated_es: Elasticsearch,
+    ) -> None:
+        repository = ElasticsearchCategoryRepository(client=populated_es)
+
+        categories = repository.search(sort="name", page=100, per_page=5)
+
+        assert categories == []

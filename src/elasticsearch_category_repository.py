@@ -39,6 +39,8 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         # pode ser utilizado pra calcular a "next_page" por exemplo.
         query = {
             "sort": [{f"{sort}.keyword": {"order": direction}}] if sort else [],  # Use .keyword for exact match
+            "from": (page - 1) * per_page,
+            "size": per_page,
         }
 
         response = self._client.search(
