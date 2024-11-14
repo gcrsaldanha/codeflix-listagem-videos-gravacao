@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Generator
 from unittest.mock import create_autospec
 from uuid import uuid4
 
@@ -7,7 +8,7 @@ import pytest
 from elasticsearch import Elasticsearch
 
 from src.domain.category import Category
-from src.domain.category_repository import SortDirection
+from src.domain.repository import SortDirection
 from src.infra.elasticsearch.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
     ELASTICSEARCH_HOST_TEST,
@@ -51,12 +52,13 @@ def documentary() -> Category:
 
 
 @pytest.fixture
-def es() -> Elasticsearch:
+def es() -> Generator[Elasticsearch, None, None]:
     client = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
     if not client.indices.exists(index=ElasticsearchCategoryRepository.INDEX):
         client.indices.create(index=ElasticsearchCategoryRepository.INDEX)
 
     yield client
+
     client.indices.delete(index=ElasticsearchCategoryRepository.INDEX)
 
 

@@ -4,11 +4,10 @@ import os
 from elasticsearch import Elasticsearch
 from pydantic import ValidationError
 
+from src.application.listing import DEFAULT_PAGINATION_SIZE, SortDirection
 from src.domain.category import Category
 from src.domain.category_repository import (
     CategoryRepository,
-    DEFAULT_PAGINATION_SIZE,
-    SortDirection,
 )
 
 ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")

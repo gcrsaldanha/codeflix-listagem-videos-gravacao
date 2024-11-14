@@ -4,9 +4,10 @@ from uuid import uuid4
 
 import pytest
 
+from src.application.list_category import ListCategory, ListCategoryInput
+from src.application.listing import ListOutputMeta, SortDirection
 from src.domain.category import Category
 from src.domain.category_repository import CategoryRepository
-from src.application.list_category import ListCategory, ListCategoryInput, ListCategoryOutputMeta
 
 
 class TestListCategory:
@@ -44,11 +45,11 @@ class TestListCategory:
         output = list_category.execute(input=ListCategoryInput())
 
         assert output.data == [movie_category, series_category]
-        assert output.meta == ListCategoryOutputMeta(
+        assert output.meta == ListOutputMeta(
             page=1,
             per_page=5,
             sort="name",
-            direction="asc",
+            direction=SortDirection.ASC,
         )
         repository.search.assert_called_once_with(
             page=1,
@@ -57,3 +58,14 @@ class TestListCategory:
             sort="name",
             direction="asc",
         )
+
+    def test_list_with_invalid_sort_field_raises_error(self) -> None:
+        repository = create_autospec(CategoryRepository)
+        list_category = ListCategory(repository)
+
+        with pytest.raises(ValueError) as err:
+            list_category.execute(
+                input=ListCategoryInput(sort="invalid_field")  # type: ignore
+            )
+
+        assert "Input should be 'name' or 'description'" in str(err.value)

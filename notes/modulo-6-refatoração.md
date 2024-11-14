@@ -82,6 +82,47 @@ src
         └── test_list_category.py
 ```
 
-# Aula 6.3 - Abstraindo Category: Domain
+# Aula 6.3 - Criando nossa Entity
 
 - Criar [`Entity`](../src/domain/entity.py) e fazer Category herdar dela.
+
+
+# Aula 6.4 - Abstraindo listagem de entidades com generics
+
+Essa aula vai ser um pouco maior porque para abstrair e utilizar os generics em um lugar, acabamos precisando ajustar em vários outros lugares.
+
+Vamos abstrair o usecase de listagem para que a gente possa reutilizá-lo em outras entidades.
+
+Criar o [`list_entity.py`](../src/application/list_entity.py)
+
+Criar o [`repository.py`](../src/domain/repository.py) genérico.
+    Atualizar o uso de `CategoryRepository` -> `CategoryRepository(Repository[Category], ABC): pass`
+
+ListEntity precisa retornar um `ListOutput[T]`, então precisamos criar o `ListOutput`.
+Criar o arquivo [`listing.py`](../src/application/listing.py)
+1. Mover `DEFAULT_PAGINATION_SIZE` e `SortDirection` para esse arquivo.
+2. Criar o `ListOutputMeta` (sem generics) e substituir `ListCategoryOutputMeta` por ele.
+3. Criar o `ListOutput[T: Entity]` com generics. Substituir
+4. O `ListInput` é um pouco mais complicado pois a parte genérica dele é o argumento `sort`:
+
+```python
+class ListInput[SortableFieldsType: StrEnum](BaseModel):
+    search: str | None = None
+    page: int = 1
+    per_page: int = DEFAULT_PAGINATION_SIZE
+    sort: SortableFieldsType | None = None
+    direction: SortDirection = SortDirection.ASC
+```
+
+E atualizar o `ListCategoryInput` para usar o `ListInput` genérico:
+```python
+class ListCategoryInput(ListInput[CategorySortableFields]):
+    sort: CategorySortableFields | None = CategorySortableFields.NAME
+```
+
+Por fim, vamos verificar se nosso testes estão passando e o que precisamos corrigir.
+
+- Adicionar um teste unitário para `ListCategory` para confirmar que nossa validação de Input continua funcionando mesmo com tipos genéricos: `test_list_with_invalid_sort_field_raises_error`
+- Também podemos executar no shell e na própria IDE para verificar que nosso código está funcionando corretamente.
+
+Agora já deve ser possível ver como é trivial adicionar a listagem para uma nova entidade, por exemplo, `Genre`.

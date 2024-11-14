@@ -1,20 +1,17 @@
 from datetime import datetime
+from typing import Generator
 from uuid import uuid4
 
 import pytest
 from elasticsearch import Elasticsearch
 
+from src.application.list_category import CategorySortableFields, ListCategory, ListCategoryInput
+from src.application.listing import ListOutputMeta
 from src.domain.category import Category
+from src.domain.repository import SortDirection
 from src.infra.elasticsearch.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
     ELASTICSEARCH_HOST_TEST,
-)
-from src.application.list_category import (
-    ListCategory,
-    ListCategoryInput,
-    ListCategoryOutputMeta,
-    SortableFields,
-    SortDirection,
 )
 
 
@@ -55,12 +52,13 @@ def documentary() -> Category:
 
 
 @pytest.fixture
-def es() -> Elasticsearch:
+def es() -> Generator[Elasticsearch, None, None]:
     client = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
     if not client.indices.exists(index=ElasticsearchCategoryRepository.INDEX):
         client.indices.create(index=ElasticsearchCategoryRepository.INDEX)
 
     yield client
+
     client.indices.delete(index=ElasticsearchCategoryRepository.INDEX)
 
 
@@ -107,10 +105,10 @@ class TestListCategory:
         output = list_category.execute(input=ListCategoryInput())
 
         assert output.data == [documentary, movie, series]  # Ordered by name by default
-        assert output.meta == ListCategoryOutputMeta(
+        assert output.meta == ListOutputMeta(
             page=1,
             per_page=5,
-            sort=SortableFields.NAME,
+            sort=CategorySortableFields.NAME,
             direction=SortDirection.ASC,
         )
 
@@ -129,7 +127,7 @@ class TestListCategory:
         output = list_category.execute(
             input=ListCategoryInput(
                 search="Filme",
-                sort=SortableFields.NAME,
+                sort=CategorySortableFields.NAME,
                 direction=SortDirection.DESC,
                 page=1,
                 per_page=1,
@@ -137,10 +135,10 @@ class TestListCategory:
         )
 
         assert output.data == [movie]
-        assert output.meta == ListCategoryOutputMeta(
+        assert output.meta == ListOutputMeta(
             page=1,
             per_page=1,
-            sort=SortableFields.NAME,
+            sort=CategorySortableFields.NAME,
             direction=SortDirection.DESC,
         )
 
@@ -148,7 +146,7 @@ class TestListCategory:
         output = list_category.execute(
             input=ListCategoryInput(
                 search="Filme",
-                sort=SortableFields.NAME,
+                sort=CategorySortableFields.NAME,
                 direction=SortDirection.DESC,
                 page=2,
                 per_page=1,
@@ -156,9 +154,9 @@ class TestListCategory:
         )
 
         assert output.data == []
-        assert output.meta == ListCategoryOutputMeta(
+        assert output.meta == ListOutputMeta(
             page=2,
             per_page=1,
-            sort=SortableFields.NAME,
+            sort=CategorySortableFields.NAME,
             direction=SortDirection.DESC,
         )
