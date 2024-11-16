@@ -1,9 +1,9 @@
-from datetime import datetime
-from uuid import uuid4
-
 from fastapi import FastAPI
 
+from src.application.list_category import ListCategory, ListCategoryInput
+from src.application.listing import ListOutput
 from src.domain.category import Category
+from src.infra.elasticsearch.elasticsearch_category_repository import ElasticsearchCategoryRepository
 
 app = FastAPI()
 
@@ -13,16 +13,6 @@ def healthcheck():
     return {"status": "ok"}
 
 
-category = Category(
-    id=uuid4(),
-    name="Filme",
-    description="Categoria de filmes",
-    created_at=datetime.now(),
-    updated_at=datetime.now(),
-    is_active=True,
-)
-
-
-@app.get("/categories")
+@app.get("/categories", response_model=ListOutput[Category])
 def list_categories():
-    return {"categories": [category]}
+    return ListCategory(repository=ElasticsearchCategoryRepository()).execute(ListCategoryInput())

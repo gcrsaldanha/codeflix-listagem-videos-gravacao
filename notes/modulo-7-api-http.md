@@ -72,3 +72,49 @@ def healthcheck():
 
 
 Verificar que o autoreload está funcionando: adicionar uma Category fake e recarregar a página.
+
+
+# Aula 7.3 - Rota /categories
+
+Simplesmente adicionar a rota:
+```python
+@app.get("/categories", response_model=ListOutput[Category])  # Observer o generics sendo usado aqui
+def list_categories():
+    return ListCategory(repository=ElasticsearchCategoryRepository()).execute(ListCategoryInput())
+```
+
+O uso de `response_model` serve tanto para documentação quanto para serialização do objeto de resposta.
+
+Vamos ver a documentação gerada automaticamente através da tipagem: http://localhost:8000/docs
+
+Experimente remover o `[Category]` da annotation e ver a diferença.
+
+Vamos adicionar pelo menos um teste end-to-end para essa rota simples:
+
+```python
+# tests/e2e_test/test_list_category_api.py
+from fastapi.testclient import TestClient
+
+from src.infra.api.http.main import app
+
+def test_list_categories_empty_response():
+    client = TestClient(app=app)
+    response = client.get("/categories")
+    assert response.status_code == 200
+    assert response.json() == {
+        "data": [],
+        "meta": {
+            "page": 1,
+            "per_page": 5,
+            "sort": "name",
+            "direction": "asc",
+        }
+    }
+
+```
+
+Esse teste vai falhar por um dos dois motivos:
+- Se o container `elasticsearch` estiver rodando e este possuir dados, o teste vai falhar porque a resposta não é vazia.
+- Se o container `elasticsearch` não estiver rodando, o teste vai falhar porque a API não vai conseguir se conectar ao Elasticsearch.
+
+Nós precisamos garantir que nosso teste utilize o elasticsearch de teste, parecido com o que fizemos anteriormente. Vamos resolver isso e escrever mais testes a seguir.
