@@ -4,11 +4,11 @@ import os
 from elasticsearch import Elasticsearch
 from pydantic import ValidationError
 
-from src.category import Category
-from src.category_repository import (
+from src.application.list_category import CategorySortableFields
+from src.application.listing import DEFAULT_PAGINATION_SIZE, SortDirection
+from src.domain.category import Category
+from src.domain.category_repository import (
     CategoryRepository,
-    DEFAULT_PAGINATION_SIZE,
-    SortDirection,
 )
 
 ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")
@@ -31,7 +31,7 @@ class ElasticsearchCategoryRepository(CategoryRepository):
         page: int = 1,
         per_page: int = DEFAULT_PAGINATION_SIZE,
         search: str | None = None,
-        sort: str | None = None,
+        sort: CategorySortableFields | None = None,
         direction: SortDirection = SortDirection.ASC,
     ) -> list[Category]:
         # Se quiséssemos o total de resultados, poderíamos usar o campo "total" do response

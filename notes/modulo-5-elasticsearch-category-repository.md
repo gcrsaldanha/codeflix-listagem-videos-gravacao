@@ -10,7 +10,7 @@ ficar passando em detalhes as configurações e se você quiser se aprofundar, r
 
 * Instalar `elasticsearch==8.13.2`
 * Criar `ElasticsearchCategoryRepository` implementando `CategoryRepository`
-    * [elasticsearch_category_repository.py](../src/elasticsearch_category_repository.py)
+    * [elasticsearch_category_repository.py](../src/infra/elasticsearch/elasticsearch_category_repository.py)
 * Passar o cliente `Elasticsearch` por dependência
 * Implementar `search` simples (sem filtros)
 * Exibir http://localhost:9200/catalog-db.codeflix.categories/_search para entendermos o que estamos parseando.
@@ -18,7 +18,7 @@ ficar passando em detalhes as configurações e se você quiser se aprofundar, r
 * Executar o `search()` via shell.
 
 ```python
-from src.elasticsearch_category_repository import ElasticsearchCategoryRepository
+from src.infra.elasticsearch.elasticsearch_category_repository import ElasticsearchCategoryRepository
 
 repo = ElasticsearchCategoryRepository()
 print(repo.search())
@@ -228,7 +228,7 @@ E vamos adicionar alguns testes ao `TestSearch`:
 
 Vamos criar um teste de integração para garantir que o `ListCategory` consegue utilizar o `ElasticsearchCategoryRepository` corretamente.
 
-- [test_list_category.py](../src/integration_tests/test_list_category.py)
+- [test_list_category.py](../src/tests/integration_tests/test_list_category.py)
 
 Test cases:
 - `test_list_categories_with_default_values`

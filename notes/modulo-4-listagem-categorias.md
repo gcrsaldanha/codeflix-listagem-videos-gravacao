@@ -62,7 +62,7 @@ Agora, instale a biblioteca `pydantic`:
 pip install pydantic
 ```
 
-Por fim, vamos criar uma pasta `src` e o arquivo [`category.py`](../src/category.py).
+Por fim, vamos criar uma pasta `src` e o arquivo [`category.py`](../src/domain/category.py).
 
 > Não vamos entrar em muitos detalhes sobre o `pydantic`, mas recomendo muito a leitura
 > da [documentação oficial](https://docs.pydantic.dev/latest/). Pense nele como um `dataclass` mais elaborado.
@@ -73,7 +73,7 @@ consegue fazer validações de tipos e valores automaticamente.
 Por exemplo:
 
 ```python
-from src.category import Category
+from src.domain.category import Category
 
 category = Category(
     id='123e4567-e89b-12d3-a456-426614174000',
@@ -116,7 +116,7 @@ o princípio da Inversão de Dependência.
 
 Nossa interface `CategoryRepository` vai ter um único método: `search`.
 
-[category_repository.py](../src/category_repository.py)
+[category_repository.py](../src/domain/category_repository.py)
 
 Toda a paginação/filtro/ordenação será delegada para o próprio banco de dados (geralmente mais eficiente). Por isso
 definimos essa interface.
@@ -142,7 +142,7 @@ E para ter uma melhor performance, vamos delegar toda a parte de paginação, bu
 Isso faz com que a lógica da nossa camada de aplicação se mantenha bem simples, praticamente passando os valores do input do usecase para o repository, e garantindo que o `input` seja válido (e.g.: SortableFields).
 
 * Fazer TDD com o test em [test_list_category.py](../src/test_list_category.py)
-* Implementação: [list_category.py](../src/list_category.py)
+* Implementação: [list_category.py](../src/application/list_category.py)
 
 **Exercício**
 

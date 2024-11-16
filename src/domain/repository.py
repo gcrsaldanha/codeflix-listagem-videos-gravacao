@@ -1,18 +1,10 @@
 from abc import ABC, abstractmethod
-from enum import StrEnum
 
-from src.category import Category
-
-
-DEFAULT_PAGINATION_SIZE = 5
+from src.application.listing import SortDirection, DEFAULT_PAGINATION_SIZE
+from src.domain.entity import Entity
 
 
-class SortDirection(StrEnum):
-    ASC = "asc"
-    DESC = "desc"
-
-
-class CategoryRepository(ABC):
+class Repository[T: Entity](ABC):
     @abstractmethod
     def search(
         self,
@@ -21,5 +13,5 @@ class CategoryRepository(ABC):
         search: str | None = None,
         sort: str | None = None,
         direction: SortDirection = SortDirection.ASC,
-    ) -> list[Category]:
+    ) -> list[T]:
         raise NotImplementedError
