@@ -125,7 +125,7 @@ services:
       PYTHONPATH: "/app"
       ELASTICSEARCH_TEST_HOST: "http://elasticsearch-test:9200"
     container_name: tests
-    command: [ "pytest", "-vv", "-s"]
+    command: [ "pytest", "-vv", "-s" ]
     depends_on:
       elasticsearch-test:
         condition: service_healthy
@@ -133,6 +133,27 @@ services:
       - test
     ports:
       - "5678:5678"  # Debug port
+    volumes:
+      - .:/app
+
+  fastapi:
+    build: .
+    container_name: fastapi
+    hostname: fastapi
+    environment:
+      PYTHONPATH: "/app"
+      ELASTICSEARCH_HOST: "http://elasticsearch:9200"
+    ports:
+      - "8000:8000"
+    command: fastapi dev src/infra/api/http/main.py --host 0.0.0.0 --port 8000 --reload;
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/healthcheck/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - .:/app
 
