@@ -118,3 +118,57 @@ Esse teste vai falhar por um dos dois motivos:
 - Se o container `elasticsearch` não estiver rodando, o teste vai falhar porque a API não vai conseguir se conectar ao Elasticsearch.
 
 Nós precisamos garantir que nosso teste utilize o elasticsearch de teste, parecido com o que fizemos anteriormente. Vamos resolver isso e escrever mais testes a seguir.
+
+
+# Aula 7.4 - Testando a rota /categories
+
+Utilizar injeção de dependência do FastAPI para passar o ElasticsearchCategoryRepository como dependência da rota `/categories`.
+
+```python
+from fastapi import FastAPI, Depends
+
+from src.infra.api.http.repositories.elasticsearch_category_repository import ElasticsearchCategoryRepository
+
+app = FastAPI()
+
+def get_repository() -> CategoryRepository:
+    return ElasticsearchCategoryRepository()
+
+@app.get("/categories", response_model=ListOutput[Category])
+def list_categories(repository: ElasticsearchCategoryRepository = Depends(get_repository)):
+    return ListCategory(repository=repository).execute(ListCategoryInput())
+```
+
+> Se quiser aprender mais sobre injeção de dependência no FastAPI, veja a documentação oficial: https://fastapi.tiangolo.com/tutorial/dependencies/. E sobre DI em testes: https://fastapi.tiangolo.com/advanced/testing-dependencies/
+
+Escrever o teste com override da dependência:
+
+```python
+@pytest.fixture
+def populated_category_repository(
+    populated_es: Elasticsearch,
+) -> Iterator[CategoryRepository]:
+    yield ElasticsearchCategoryRepository(client=populated_es)
+
+
+@pytest.fixture
+def client_with_populated_repo(
+    populated_category_repository: CategoryRepository,
+) -> Iterator[TestClient]:
+    app.dependency_overrides[get_category_repository] = lambda: populated_category_repository
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+def test_list_categories(
+    test_client_with_populated_repo: TestClient,
+    series: Category,
+    movie: Category,
+    documentary: Category,
+) -> None:
+    response = test_client_with_populated_repo.get("/categories")
+    assert response.status_code == 200
+    assert response.json() == {...}
+
+```
+
+Também vamos criar um `conftest.py` com o nosso repositório do Elasticsearch, e substituir o uso em outros testes. Ver arquivo: [src/tests/conftest.py](../src/tests/conftest.py) Podemos colocar outras fixtures nesse arquivo também.
