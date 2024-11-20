@@ -77,6 +77,36 @@ services:
     volumes:
       - ./kafka-connect/connect-plugins:/kafka/extra-plugins
 
+  connect-setup:
+    container_name: connect-setup
+    image: curlimages/curl
+    volumes:
+      - ./kafka-connect/bin:/kafka-connect/bin
+    depends_on:
+      connect:
+        condition: service_healthy
+    command: [ "sh", "-c", "chmod +x /kafka-connect/bin/connect-setup.sh && /kafka-connect/bin/connect-setup.sh" ]
+    restart: "no"
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+
 volumes:
   mysql-data:
   kafka-data:
+  elasticsearch-data:
