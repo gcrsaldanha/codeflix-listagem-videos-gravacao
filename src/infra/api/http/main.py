@@ -1,10 +1,16 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 
-from src.application.list_category import ListCategory, ListCategoryInput
-from src.application.listing import ListOutput
+from src.application.list_category import (
+    ListCategory,
+    ListCategoryInput,
+    CategorySortableFields,
+)
+from src.application.listing import ListOutput, DEFAULT_PAGINATION_SIZE, SortDirection
 from src.domain.category import Category
 from src.domain.category_repository import CategoryRepository
-from src.infra.elasticsearch.elasticsearch_category_repository import ElasticsearchCategoryRepository
+from src.infra.elasticsearch.elasticsearch_category_repository import (
+    ElasticsearchCategoryRepository,
+)
 
 app = FastAPI()
 
@@ -20,5 +26,27 @@ def get_category_repository() -> CategoryRepository:
 
 
 @app.get("/categories", response_model=ListOutput[Category])
-def list_categories(repository: CategoryRepository = Depends(get_category_repository)) -> ListOutput[Category]:
-    return ListCategory(repository=repository).execute(ListCategoryInput())
+def list_categories(
+    repository: ElasticsearchCategoryRepository = Depends(get_category_repository),
+    search: str | None = Query(None, description="Search term for name or description"),
+    page: int = Query(1, ge=1, description="Page number"),
+    per_page: int = Query(
+        DEFAULT_PAGINATION_SIZE,
+        ge=1,
+        le=100,
+        description="Number of items per page",
+    ),
+    sort: CategorySortableFields = Query(
+        CategorySortableFields.NAME, description="Field to sort by"
+    ),
+    direction: SortDirection = Query(
+        SortDirection.ASC, description="Sort direction (asc or desc)"
+    ),
+) -> ListOutput[Category]:
+    return ListCategory(repository=repository).execute(ListCategoryInput(
+        search=search,
+        page=page,
+        per_page=per_page,
+        sort=sort,
+        direction=direction,
+    ))

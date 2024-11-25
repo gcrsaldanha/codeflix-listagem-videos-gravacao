@@ -172,3 +172,8 @@ def test_list_categories(
 ```
 
 Também vamos criar um `conftest.py` com o nosso repositório do Elasticsearch, e substituir o uso em outros testes. Ver arquivo: [src/tests/conftest.py](../src/tests/conftest.py) Podemos colocar outras fixtures nesse arquivo também.
+
+# Aula 7.5 - Query params na rota /categories
+
+Adicionar query params na rota `/categories`.
+Adicionar unit tests simples: [test_list_category_api.py](../src/tests/unit_tests/test_list_category_api.py)

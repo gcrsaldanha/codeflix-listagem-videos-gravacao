@@ -1,7 +1,3 @@
-from datetime import datetime
-from uuid import uuid4
-
-import pytest
 from elasticsearch import Elasticsearch
 
 from src.application.list_category import CategorySortableFields, ListCategory, ListCategoryInput
@@ -11,42 +7,6 @@ from src.domain.repository import SortDirection
 from src.infra.elasticsearch.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
 )
-
-
-@pytest.fixture
-def movie() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Filme",
-        description="Categoria de filmes",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def series() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Séries",
-        description="Categoria de séries",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def documentary() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Documentários",
-        description="Categoria de documentários",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
 
 
 class TestListCategory:
