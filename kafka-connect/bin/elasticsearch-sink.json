@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
     "tasks.max": "1",
-    "topics": "catalog-db.codeflix.categories",
+    "topics": "catalog-db.codeflix.categories,catalog-db.codeflix.cast_members",
     "connection.url": "http://elasticsearch:9200",
     "behavior.on.null.values": "delete",
     "key.ignore": "false",

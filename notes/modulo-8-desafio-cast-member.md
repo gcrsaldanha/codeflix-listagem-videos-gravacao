@@ -10,7 +10,7 @@ que fizemos para a listagem de categorias.
 1. Criar tabela `cast_members` no banco de dados para armazenar os dados de Cast Member e inserir alguns dados.
 
 ```mysql
-CREATE TABLE cast_member
+CREATE TABLE cast_members
 (
     id         VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name       VARCHAR(255) NOT NULL,

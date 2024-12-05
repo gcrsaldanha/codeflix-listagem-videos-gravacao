@@ -10,7 +10,7 @@ class CategorySortableFields(StrEnum):
     DESCRIPTION = "description"
 
 
-class ListCategoryInput(ListInput[CategorySortableFields]):
+class ListCategoryInput(ListInput):
     sort: CategorySortableFields | None = CategorySortableFields.NAME
 
 

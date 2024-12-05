@@ -24,9 +24,9 @@ class ListOutput[T: Entity](BaseModel):
     meta: ListOutputMeta = Field(default_factory=ListOutputMeta)
 
 
-class ListInput[SortableFieldsType: StrEnum](BaseModel):
+class ListInput(BaseModel):
     search: str | None = None
     page: int = 1
     per_page: int = DEFAULT_PAGINATION_SIZE
-    sort: SortableFieldsType | None = None
+    sort: StrEnum | None = None
     direction: SortDirection = SortDirection.ASC
