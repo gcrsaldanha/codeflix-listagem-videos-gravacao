@@ -51,14 +51,14 @@ class ElasticsearchGenreRepository(GenreRepository):
             body=query,
         )["hits"]["hits"]
 
-        genre_ids = [hit["_source"]["id"] for hit in hits]
         parsed_entities = []
         for hit in hits:
             try:
+                genre_categories = self.fetch_categories_for_genre(genre_id=hit["_source"]["id"])
                 parsed_entity = Genre(
                     **{
                         **hit["_source"],
-                        "categories": set(),
+                        "categories": set(genre_categories)
                     }
                 )
             except ValidationError:
@@ -67,3 +67,15 @@ class ElasticsearchGenreRepository(GenreRepository):
                 parsed_entities.append(parsed_entity)
 
         return parsed_entities
+    
+    def fetch_categories_for_genre(self, genre_id: str) -> list[str]:
+        query = {
+            "query": {
+                "term": {
+                    "genre_id.keyword": genre_id,
+                },
+            },
+        }
+
+        hits = self._client.search(index="catalog-db.codeflix.genre_categories", body=query)["hits"]["hits"]
+        return [hit["_source"]["category_id"] for hit in hits]

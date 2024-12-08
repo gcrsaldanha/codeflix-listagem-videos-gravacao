@@ -71,7 +71,7 @@ Criar o `GenreRepository`.
 Usar como referência o `ListCastMember` (mais atual).
 Duplicar `list_cast_memer.py` e atualizar valores.
 
-# Aula 9.3 - ElasticsearchGenreRepository pt.1
+# Aula 9.4 - ElasticsearchGenreRepository pt.1
 
 Criar o ElasticsearchGenreRepository sem as categories relacionadas.
 
@@ -85,13 +85,13 @@ parsed_entity = Genre(
 )
 ```
 
-# Aula 9.4 - API /genres
+# Aula 9.5 - API /genres
 
 Copiar o cast_member_router.py.
 
 Por enquanto o retorno vai ter sempre `categories` vazio.
 
-# Aula 9.5 - Discussão sobre relacionamento entre gêneros e categorias
+# Aula 9.6 - Discussão sobre relacionamento entre gêneros e categorias
 
 1. Fazer o Sink da tabela que relaciona gêneros e categorias e atualizar o ElasticsearchGenreRepository para trazer as
    categorias relacionadas.
@@ -114,7 +114,7 @@ Vamos seguir com a opção (1) por ser a mais simples. Se você quiser ver a op�
 assista às aulas do módulo de TypeScript.
 
 
-# Aula 9.5 - Tabela genre_categories
+# Aula 9.7 - Tabela genre_categories
 
 Precisamos de uma tabela para relacionar um gênero às suas categorias:
 
@@ -145,7 +145,7 @@ WHERE g.name = 'Drama'
 
 > Falar sobre caso não tivéssemos um `id` definido - bastaria definir outro connector para a composite key.
 
-# Aula 9.6 - ElasticsearchGenreRepository pt.2
+# Aula 9.8 - ElasticsearchGenreRepository pt.2
 
 Agora que temos uma nova tabela relacionando gêneros e categorias, precisamos atualizar o `ElasticsearchGenreRepository`
 para trazer as categorias relacionadas.
@@ -189,7 +189,7 @@ def fetch_categories_for_genre(self, genre_id: str) -> list[str]:
     return [hit["_source"]["category_id"] for hit in hits]
 ```
 
-# Aula 9.7 - Otimizando a busca de categorias
+# Aula 9.9 - Otimizando a busca de categorias
 
 Atualmente temos o famoso problem N+1: onde para cada entidade `genre` fazemos uma nova requisição para buscar suas
 categorias.
@@ -225,7 +225,7 @@ def fetch_categories_for_genres(self, genre_ids: list[str]) -> dict[str, list[st
     return categories_by_genre
 ```
 
-## Aula 9.8: UUID vs Objetos completos
+## Aula 9.10: UUID vs Objetos completos
 
 Uma discussão interessante que tem a ver com as diferentes estratégias que podemos adotar é sobre listar apenas os UUIDs das entidades relacionadas ou **o objeto completo**.
 
@@ -286,7 +286,7 @@ Mais uma vez, não tem certo nem errado e essa decisão pode guiar nossa estrat�
 No nosso caso, estamos indo pelo caminho mais simples, mas é importante que você entenda todo o potencial do Elasticsearch e de como as decisões do nosso **negócio** também vão guiar nossas decisões de arquitetura de software.
 
 
-# Aula 9.9 - Testes para ListGenre
+# Aula 9.11 - Testes para ListGenre
 
 - Criar `drama` e `romance` em conftest
   - drama com 2 categorias
