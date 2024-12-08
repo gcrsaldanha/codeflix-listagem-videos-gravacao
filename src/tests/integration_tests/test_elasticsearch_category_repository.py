@@ -1,94 +1,15 @@
 import logging
-from datetime import datetime
-from typing import Generator
 from unittest.mock import create_autospec
 from uuid import uuid4
 
-import pytest
 from elasticsearch import Elasticsearch
 
+from src.application.list_category import CategorySortableFields
 from src.domain.category import Category
 from src.domain.repository import SortDirection
 from src.infra.elasticsearch.elasticsearch_category_repository import (
     ElasticsearchCategoryRepository,
-    ELASTICSEARCH_HOST_TEST,
 )
-
-
-@pytest.fixture
-def movie() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Filme",
-        description="Categoria de filmes",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def series() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Séries",
-        description="Categoria de séries",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def documentary() -> Category:
-    return Category(
-        id=uuid4(),
-        name="Documentários",
-        description="Categoria de documentários",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def es() -> Generator[Elasticsearch, None, None]:
-    client = Elasticsearch(hosts=[ELASTICSEARCH_HOST_TEST])
-    if not client.indices.exists(index=ElasticsearchCategoryRepository.INDEX):
-        client.indices.create(index=ElasticsearchCategoryRepository.INDEX)
-
-    yield client
-
-    client.indices.delete(index=ElasticsearchCategoryRepository.INDEX)
-
-
-@pytest.fixture
-def populated_es(
-    es: Elasticsearch,
-    movie: Category,
-    series: Category,
-    documentary: Category,
-) -> Elasticsearch:
-    es.index(
-        index=ElasticsearchCategoryRepository.INDEX,
-        id=str(movie.id),
-        body=movie.model_dump(mode="json"),
-        refresh=True,
-    )
-    es.index(
-        index=ElasticsearchCategoryRepository.INDEX,
-        id=str(series.id),
-        body=series.model_dump(mode="json"),
-        refresh=True,
-    )
-    es.index(
-        index=ElasticsearchCategoryRepository.INDEX,
-        id=str(documentary.id),
-        body=documentary.model_dump(mode="json"),
-        refresh=True,
-    )
-
-    return es
 
 
 class TestSearch:
@@ -246,7 +167,7 @@ class TestOrdering:
         )
         repository = ElasticsearchCategoryRepository(client=es)
 
-        categories = repository.search(sort="name", direction=SortDirection.ASC)
+        categories = repository.search(sort=CategorySortableFields.NAME, direction=SortDirection.ASC)
 
         assert categories == [documentary, movie, series]
 
@@ -277,7 +198,7 @@ class TestOrdering:
         )
         repository = ElasticsearchCategoryRepository(client=es)
 
-        categories = repository.search(sort="name", direction=SortDirection.DESC)
+        categories = repository.search(sort=CategorySortableFields.NAME, direction=SortDirection.DESC)
 
         assert categories == [series, movie, documentary]
 
