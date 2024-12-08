@@ -1,7 +1,6 @@
 from elasticsearch import Elasticsearch
 
-from src.application.list_category import ListCategoryInput
-from src.application.list_genre import ListGenre, GenreSortableFields
+from src.application.list_genre import ListGenre, GenreSortableFields, ListGenreInput
 from src.application.listing import ListOutputMeta
 from src.domain.category import Category
 from src.domain.genre import Genre
@@ -14,7 +13,6 @@ class TestListGenre:
         self,
         populated_es: Elasticsearch,
         movie: Category,
-        series: Category,
         documentary: Category,
         drama: Genre,
         romance: Genre,
@@ -22,7 +20,7 @@ class TestListGenre:
         output = ListGenre(
             repository=ElasticsearchGenreRepository(client=populated_es)
         ).execute(
-            input=ListCategoryInput()
+            input=ListGenreInput()
         )
 
         assert output.data == [drama, romance]

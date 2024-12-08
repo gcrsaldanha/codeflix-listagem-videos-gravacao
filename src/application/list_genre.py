@@ -11,7 +11,7 @@ class GenreSortableFields(StrEnum):
 
 
 class ListGenreInput(ListInput):
-    sort: GenreSortableFields | None = GenreSortableFields
+    sort: GenreSortableFields | None = GenreSortableFields.NAME
 
 
 class ListGenre(ListEntity[Genre]):
