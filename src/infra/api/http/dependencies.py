@@ -5,8 +5,10 @@ from fastapi import Query
 from src.application.listing import DEFAULT_PAGINATION_SIZE, SortDirection
 from src.domain.cast_member_repository import CastMemberRepository
 from src.domain.category_repository import CategoryRepository
+from src.domain.genre_repository import GenreRepository
 from src.infra.elasticsearch.elasticsearch_cast_member_repository import ElasticsearchCastMemberRepository
 from src.infra.elasticsearch.elasticsearch_category_repository import ElasticsearchCategoryRepository
+from src.infra.elasticsearch.elasticsearch_genre_repository import ElasticsearchGenreRepository
 
 
 def common_parameters(
@@ -36,3 +38,7 @@ def get_category_repository() -> CategoryRepository:
 
 def get_cast_member_repository() -> CastMemberRepository:
     return ElasticsearchCastMemberRepository()
+
+
+def get_genre_repository() -> GenreRepository:
+    return ElasticsearchGenreRepository()
