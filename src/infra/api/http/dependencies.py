@@ -6,9 +6,11 @@ from src.application.listing import DEFAULT_PAGINATION_SIZE, SortDirection
 from src.domain.cast_member_repository import CastMemberRepository
 from src.domain.category_repository import CategoryRepository
 from src.domain.genre_repository import GenreRepository
+from src.domain.video_repository import VideoRepository
 from src.infra.elasticsearch.elasticsearch_cast_member_repository import ElasticsearchCastMemberRepository
 from src.infra.elasticsearch.elasticsearch_category_repository import ElasticsearchCategoryRepository
 from src.infra.elasticsearch.elasticsearch_genre_repository import ElasticsearchGenreRepository
+from src.infra.elasticsearch.elasticsearch_video_repository import ElasticsearchVideoRepository
 
 
 def common_parameters(
@@ -42,3 +44,7 @@ def get_cast_member_repository() -> CastMemberRepository:
 
 def get_genre_repository() -> GenreRepository:
     return ElasticsearchGenreRepository()
+
+
+def get_video_repository() -> VideoRepository:
+    return ElasticsearchVideoRepository()
