@@ -10,7 +10,7 @@ class CastMemberSortableFields(StrEnum):
 
 
 class ListCastMemberInput(ListInput):
-    sort: CastMemberSortableFields | None = CastMemberSortableFields
+    sort: CastMemberSortableFields | None = CastMemberSortableFields.NAME
 
 
 class ListCastMember(ListEntity[CastMember]):
