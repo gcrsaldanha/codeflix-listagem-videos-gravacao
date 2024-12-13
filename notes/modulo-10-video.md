@@ -114,3 +114,9 @@ class HttpClient(CodeflixClient):
 # Aula 10.4 - Consumer
 - Code walkthrough ao invés de live-coding.
 - Apresentar o diagrama
+
+
+# Aula 10.5 - Executando o consumer
+- Criar tabela `videos`
+- Inserir dados
+- Verificar que foi inserida no Elasticsearch e na API
