@@ -118,5 +118,23 @@ class HttpClient(CodeflixClient):
 
 # Aula 10.5 - Executando o consumer
 - Criar tabela `videos`
+
+```mysql
+CREATE TABLE videos
+(
+    id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    title       VARCHAR(255) NOT NULL,
+    launch_year INT          NOT NULL,
+    rating      VARCHAR(10)  NOT NULL,
+    is_active   BOOLEAN                 DEFAULT TRUE,
+    created_at  TIMESTAMP               DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP               DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+```
 - Inserir dados
+```mysql
+INSERT INTO videos (title, launch_year, rating)
+VALUES ('Pulp Fiction', 1972, 'AGE_18');
+```
 - Verificar que foi inserida no Elasticsearch e na API
