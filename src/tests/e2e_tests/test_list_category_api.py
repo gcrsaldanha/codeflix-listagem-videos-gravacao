@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from src.domain.category import Category
 from src.domain.category_repository import CategoryRepository
+from src.infra.api.http.auth import authenticate
 from src.infra.api.http.main import app
 from src.infra.api.http.dependencies import get_category_repository
 from src.infra.elasticsearch.elasticsearch_category_repository import (
@@ -25,6 +26,7 @@ def test_client_with_populated_repo(
     populated_category_repository: CategoryRepository,
 ) -> Iterator[TestClient]:
     app.dependency_overrides[get_category_repository] = lambda: populated_category_repository
+    app.dependency_overrides[authenticate] = lambda: None
     yield TestClient(app)
     app.dependency_overrides.clear()
 
