@@ -157,6 +157,21 @@ services:
     volumes:
       - .:/app
 
+  consumer:
+    build: .
+    container_name: consumer
+    hostname: consumer
+    environment:
+      PYTHONPATH: "/app"
+      ELASTICSEARCH_HOST: "http://elasticsearch:9200"
+    command: [ "python", "src/infra/kafka/consumer.py" ]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+
 
 volumes:
   mysql-data:
