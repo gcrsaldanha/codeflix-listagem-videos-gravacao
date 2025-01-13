@@ -31,6 +31,7 @@
    - "aud": "account" 
    - "alg": "RS256"
 
+
 # Aula 2 - Rota com autenticação
 
 - Instalar PyJWT
