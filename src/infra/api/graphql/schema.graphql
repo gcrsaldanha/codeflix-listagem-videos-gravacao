@@ -1,0 +1,46 @@
+type Category {
+    id: ID!
+    name: String!
+    description: String
+}
+
+type CastMember {
+    id: ID!
+    name: String!
+    type: String!
+}
+
+type Meta {
+    page: Int!
+    perPage: Int!
+    sort: String!
+    direction: String!
+}
+
+type CategoryResult {
+    data: [Category!]!
+    meta: Meta!
+}
+
+type CastMemberResult {
+    data: [CastMember!]!
+    meta: Meta!
+}
+
+type Query {
+    categories(
+        search: String = ""
+        page: Int = 0
+        perPage: Int = 10
+        sort: String = "name"
+        direction: String = "asc"
+    ): CategoryResult!
+
+    castMembers(
+        search: String = ""
+        page: Int = 0
+        perPage: Int = 10
+        sort: String = "name"
+        direction: String = "asc"
+    ): CastMemberResult!
+}

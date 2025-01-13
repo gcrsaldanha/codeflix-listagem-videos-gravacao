@@ -171,8 +171,6 @@ services:
     volumes:
       - .:/app
 
-
-
 volumes:
   mysql-data:
   kafka-data:
